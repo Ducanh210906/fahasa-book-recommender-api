@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gợi ý sách Fahasa</title>
+<style>
+  body {
+    font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    background: #f4f2ec;
+    margin: 0;
+    padding: 40px 16px;
+    display: flex;
+    justify-content: center;
+  }
+  .card {
+    background: #ffffff;
+    border: 1px solid #e0ddd3;
+    border-radius: 12px;
+    padding: 28px;
+    width: 100%;
+    max-width: 420px;
+  }
+  h1 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  p.sub {
+    font-size: 13px;
+    color: #6b6a63;
+    margin: 0 0 20px;
+  }
+  label {
+    display: block;
+    font-size: 13px;
+    color: #6b6a63;
+    margin-bottom: 4px;
+  }
+  input, select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 8px 10px;
+    border: 1px solid #d3d1c7;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-bottom: 14px;
+  }
+  button {
+    width: 100%;
+    padding: 10px;
+    background: #26221c;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  button:disabled {
+    background: #b4b2a9;
+    cursor: not-allowed;
+  }
+  #result {
+    margin-top: 16px;
+  }
+  .item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-top: 1px solid #eeece4;
+    font-size: 14px;
+  }
+  .conf {
+    font-weight: 600;
+    color: #185fa5;
+  }
+  .msg {
+    font-size: 13px;
+    color: #6b6a63;
+  }
+  .err {
+    font-size: 13px;
+    color: #a32d2d;
+  }
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Gợi ý sách Fahasa</h1>
+  <p class="sub">Nhập thông tin khách hàng để xem thể loại sách phù hợp</p>
+
+  <label for="tuoi">Tuổi</label>
+  <input type="number" id="tuoi" value="25" min="5" max="70">
+
+  <label for="gioitinh">Giới tính</label>
+  <select id="gioitinh">
+    <option value="0">Nam</option>
+    <option value="1">Nữ</option>
+  </select>
+
+  <label for="nghenghiep">Nghề nghiệp</label>
+  <select id="nghenghiep">
+    <option value="0">Học sinh/Sinh viên</option>
+    <option value="1">Đi làm</option>
+    <option value="2">Hưu trí</option>
+  </select>
+
+  <button id="btn">Xem gợi ý sách</button>
+
+  <div id="result"></div>
+</div>
+
+<script>
+const API_URL = "https://fahasa-book-recommender.onrender.com/predict";
+const btn = document.getElementById('btn');
+const result = document.getElementById('result');
+
+btn.addEventListener('click', async () => {
+  btn.disabled = true;
+  btn.textContent = "Đang xử lý...";
+  result.innerHTML = '<p class="msg">Có thể mất tới 50 giây nếu server đang ngủ (gói miễn phí).</p>';
+
+  const payload = {
+    tuoi: Number(document.getElementById('tuoi').value),
+    gioi_tinh: Number(document.getElementById('gioitinh').value),
+    nghe_nghiep: Number(document.getElementById('nghenghiep').value)
+  };
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) {
+      throw new Error('Server trả về mã lỗi ' + res.status);
+    }
+
+    const data = await res.json();
+    result.innerHTML = data.goi_y.map(function(g) {
+      return '<div class="item"><span>' + g.the_loai + '</span><span class="conf">' + g.do_tin_cay + '%</span></div>';
+    }).join('');
+
+  } catch (err) {
+    result.innerHTML = '<p class="err">Không gọi được API: ' + err.message + '. Kiểm tra lại CORS trên server hoặc thử lại sau vài giây.</p>';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Xem gợi ý sách";
+  }
+});
+</script>
+
+</body>
+</html>
