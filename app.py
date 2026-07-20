@@ -4,7 +4,14 @@ import joblib
 import pandas as pd
 
 app = FastAPI(title="Fahasa Book Recommender API")
+from fastapi.middleware.cors import CORSMiddleware
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 model = joblib.load('book_recommender_model.pkl')
 le = joblib.load('label_encoder.pkl')
 
